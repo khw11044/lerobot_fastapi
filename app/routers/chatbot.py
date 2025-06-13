@@ -27,10 +27,29 @@ async def chat(request: ChatRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/clear")
-async def clear_chat(session_id: str = "default"):
+async def clear_chat(request: dict):
     """채팅 기록을 초기화합니다."""
     try:
+        session_id = request.get("session_id", "default")
         llm_service.clear_history(session_id)
         return {"message": "Chat history cleared successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/history/{session_id}")
+async def get_chat_history(session_id: str, limit: int = 10):
+    """특정 세션의 채팅 기록을 가져옵니다."""
+    try:
+        history = llm_service.get_history(session_id, limit)
+        return {"history": history}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/sessions")
+async def get_all_sessions():
+    """모든 세션 정보를 가져옵니다."""
+    try:
+        sessions = llm_service.get_all_sessions()
+        return {"sessions": sessions}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

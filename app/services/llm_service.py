@@ -1,8 +1,15 @@
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_community.chat_message_histories import SQLChatMessageHistory
+from langchain.schema.output_parser import StrOutputParser
 from typing import Dict, List
 import os
 from dotenv import load_dotenv
+
+# 프롬프트와 데이터베이스 유틸리티 임포트
+from utils.prompts.prompt import chat_prompt
+from utils.databases.database import DatabaseManager
 
 load_dotenv()
 
@@ -15,47 +22,99 @@ class LLMService:
             openai_api_key=os.getenv("OPENAI_API_KEY")
         )
         
-        # 세션별 대화 히스토리 저장
-        self.chat_histories: Dict[str, List] = {}
+        # 데이터베이스 매니저 초기화
+        self.db_manager = DatabaseManager()
         
-        # 시스템 메시지
-        self.system_message = SystemMessage(
-            content="당신은 친근하고 도움이 되는 AI 어시스턴트입니다. 사용자의 질문에 정확하고 유익한 답변을 제공해주세요."
+        # RAG 체인 초기화
+        self.chain = self.init_chain()
+        
+        # 현재 세션 ID
+        self.current_session_id = 'default'
+    
+    def init_chain(self):
+        """RAG 체인을 초기화합니다."""
+        rag_chat_chain = chat_prompt | self.llm | StrOutputParser()
+        return rag_chat_chain
+    
+    def get_chat_history(self, session_id: str):
+        """세션 기록을 가져오는 함수"""
+        return SQLChatMessageHistory(
+            table_name='chat_messages',
+            session_id=session_id,
+            connection="sqlite:///chat_history.db",
         )
     
     async def generate_response(self, user_message: str, session_id: str = "default") -> str:
         """사용자 메시지에 대한 AI 응답을 생성합니다."""
         try:
-            # 세션 히스토리 가져오기
-            if session_id not in self.chat_histories:
-                self.chat_histories[session_id] = [self.system_message]
+            # 세션 ID 업데이트
+            if session_id:
+                self.current_session_id = session_id
             
-            history = self.chat_histories[session_id]
+            print(f"[대화 세션ID]: {self.current_session_id}")
             
-            # 사용자 메시지 추가
-            history.append(HumanMessage(content=user_message))
+            # RunnableWithMessageHistory를 사용한 대화형 RAG 체인
+            conversational_rag_chain = RunnableWithMessageHistory(      
+                self.chain,                                 # 실행할 Runnable 객체
+                self.get_chat_history,                      # 세션 기록을 가져오는 함수
+                input_messages_key="input",                 # 입력 메시지의 키
+                history_messages_key="chat_history",        # 기록 메시지의 키
+            )
             
             # AI 응답 생성
-            response = await self.llm.ainvoke(history)
+            response = await conversational_rag_chain.ainvoke(
+                {"input": user_message},
+                config={"configurable": {"session_id": self.current_session_id}}
+            )
             
-            # AI 응답을 히스토리에 추가
-            history.append(AIMessage(content=response.content))
+            # 데이터베이스에 대화 내용 저장
+            self.db_manager.save_conversation(
+                session_id=self.current_session_id,
+                user_message=user_message,
+                ai_response=response
+            )
             
-            # 히스토리가 너무 길어지면 최근 20개 메시지만 유지
-            if len(history) > 21:  # system message + 20개 메시지
-                self.chat_histories[session_id] = [self.system_message] + history[-20:]
-            
-            return response.content
+            return response
             
         except Exception as e:
             print(f"Error generating response: {e}")
-            return "죄송합니다. 응답을 생성하는 중에 오류가 발생했습니다."
+            error_message = "죄송합니다. 응답을 생성하는 중에 오류가 발생했습니다."
+            
+            # 에러도 기록
+            self.db_manager.save_conversation(
+                session_id=self.current_session_id,
+                user_message=user_message,
+                ai_response=error_message
+            )
+            
+            return error_message
     
     def clear_history(self, session_id: str = "default"):
         """특정 세션의 대화 히스토리를 초기화합니다."""
-        if session_id in self.chat_histories:
-            self.chat_histories[session_id] = [self.system_message]
+        try:
+            # SQLChatMessageHistory 초기화
+            chat_history = self.get_chat_history(session_id)
+            chat_history.clear()
+            
+            # 커스텀 데이터베이스에서도 삭제
+            self.db_manager.clear_session_history(session_id)
+            
+            print(f"Session {session_id} history cleared.")
+        except Exception as e:
+            print(f"Error clearing history: {e}")
     
-    def get_history(self, session_id: str = "default") -> List:
+    def get_history(self, session_id: str = "default", limit: int = 10):
         """특정 세션의 대화 히스토리를 반환합니다."""
-        return self.chat_histories.get(session_id, [self.system_message])
+        try:
+            return self.db_manager.get_conversation_history(session_id, limit)
+        except Exception as e:
+            print(f"Error getting history: {e}")
+            return []
+    
+    def get_all_sessions(self):
+        """모든 세션 정보를 반환합니다."""
+        try:
+            return self.db_manager.get_all_sessions()
+        except Exception as e:
+            print(f"Error getting sessions: {e}")
+            return []

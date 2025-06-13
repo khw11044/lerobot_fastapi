@@ -36,6 +36,94 @@ body {
     overflow: hidden;
 }
 
+/* 사용자 ID 입력 섹션 */
+.user-id-section {
+    padding: 15px 20px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.user-id-input {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.user-id-input input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 20px;
+    outline: none;
+    font-size: 0.9em;
+    transition: border-color 0.3s ease;
+}
+
+.user-id-input input:focus {
+    border-color: #0b93f6;
+}
+
+.user-id-input button {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 600;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.user-id-input button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+}
+
+.current-user {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: white;
+    border: 2px solid #28a745;
+    border-radius: 15px;
+    margin-top: 10px;
+    font-weight: 600;
+    color: #28a745;
+}
+
+.logout-button {
+    padding: 5px 15px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+    background-color: #c82333;
+}
+
+/* 챗봇 비활성화 상태 */
+.chat-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.chat-disabled input {
+    background-color: #f8f9fa;
+    cursor: not-allowed;
+}
+
+.chat-disabled button {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
 /* 헤더 */
 .chat-header {
     background: linear-gradient(135deg, #0b93f6 0%, #0875d1 100%);
