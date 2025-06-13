@@ -1,3 +1,4 @@
+import asyncio
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.runnables.history import RunnableWithMessageHistory
@@ -62,16 +63,18 @@ class LLMService:
             )
             
             # AI 응답 생성
-            response = await conversational_rag_chain.ainvoke(
+            response = await asyncio.to_thread(
+                conversational_rag_chain.invoke,
                 {"input": user_message},
-                config={"configurable": {"session_id": self.current_session_id}}
+                {"configurable": {"session_id": self.current_session_id}}
             )
             
             # 데이터베이스에 대화 내용 저장
-            self.db_manager.save_conversation(
-                session_id=self.current_session_id,
-                user_message=user_message,
-                ai_response=response
+            await asyncio.to_thread(
+                self.db_manager.save_conversation,
+                self.current_session_id,
+                user_message,
+                response
             )
             
             return response
@@ -81,11 +84,15 @@ class LLMService:
             error_message = "죄송합니다. 응답을 생성하는 중에 오류가 발생했습니다."
             
             # 에러도 기록
-            self.db_manager.save_conversation(
-                session_id=self.current_session_id,
-                user_message=user_message,
-                ai_response=error_message
-            )
+            try:
+                await asyncio.to_thread(
+                    self.db_manager.save_conversation,
+                    self.current_session_id,
+                    user_message,
+                    error_message
+                )
+            except Exception as db_error:
+                print(f"Error saving to database: {db_error}")
             
             return error_message
     

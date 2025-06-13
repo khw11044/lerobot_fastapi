@@ -191,6 +191,7 @@ body {
     max-width: 80%;
     line-height: 1.4;
     word-wrap: break-word;
+    white-space: pre-wrap; /* 줄바꿈 처리를 위해 추가 */
     animation: fadeIn 0.3s ease-in;
 }
 

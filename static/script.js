@@ -179,6 +179,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function addMessage(sender, text) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${sender}`;
+        
+        // 줄바꿈 처리: \n을 실제 줄바꿈으로 변환
         messageDiv.textContent = text;
         
         chatBox.appendChild(messageDiv);
