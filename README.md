@@ -12,7 +12,7 @@ project/
 │   ├── routers/
 │   │   ├── __init__.py       # 라우터 초기화 파일
 │   │   └── chatbot.py        # 챗봇 라우터
-│   └── services/
+│   └── services
 │       ├── __init__.py       # 서비스 초기화 파일
 │       └── llm_service.py    # LLM 서비스 로직
 └── static/
