@@ -5,6 +5,9 @@ import threading
 import time
 from typing import Optional
 
+
+from ..services.face_service import face_service
+
 router = APIRouter()
 
 class CameraManager:
@@ -60,6 +63,9 @@ class CameraManager:
                     print("프레임을 읽을 수 없습니다.")
                     break
                 
+                # ✅ 얼굴 탐지 및 바운딩 박스 그리기
+                frame = face_service.detect_and_draw(frame)
+
                 # 프레임을 JPEG로 인코딩
                 ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
                 if not ret:
