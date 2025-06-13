@@ -33,5 +33,11 @@ conda activate fastapi
 # 패키지 설치 
 
 ```
+sudo apt-get install portaudio19-dev python3-pyaudio
+```
+
+```
 pip install -r requirements.txt
 ```
+
+

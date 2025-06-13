@@ -37,7 +37,20 @@
             <!-- 입력 영역 -->
             <div class="chat-input">
                 <input type="text" id="user-input" placeholder="메시지를 입력하세요..." maxlength="500">
+                <button id="mic-btn" class="mic-button" title="음성 인식">🎤</button>
                 <button id="send-btn">전송</button>
+            </div>
+            
+            <!-- 음성 인식 상태 표시 -->
+            <div class="audio-status" id="audio-status" style="display: none;">
+                <div class="volume-indicator">
+                    <span>음성 감지:</span>
+                    <div class="volume-bar-container">
+                        <div class="volume-bar" id="volume-bar"></div>
+                    </div>
+                    <span id="volume-text">0%</span>
+                </div>
+                <div class="listening-status" id="listening-status">🎤 음성을 듣고 있습니다...</div>
             </div>
         </div>
     </div>
