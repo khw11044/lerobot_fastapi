@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+opencv-python
+langchain
+langchain_openai
+langchain_core
+langchain_community
