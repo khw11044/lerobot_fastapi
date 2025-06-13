@@ -16,17 +16,158 @@ body {
 
 .container {
     display: flex;
-    justify-content: center;
-    align-items: center;
     width: 100%;
     height: 100%;
     padding: 20px;
+    gap: 20px;
+    max-width: 1400px;
 }
 
-/* 챗봇 컨테이너 */
-.chat-container {
+/* 카메라 섹션 */
+.camera-section {
+    flex: 0 0 400px;
+    display: flex;
+    flex-direction: column;
+}
+
+.camera-container {
+    height: 80vh;
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.camera-header {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.camera-header h2 {
+    font-size: 1.3em;
+    font-weight: 600;
+}
+
+.camera-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.camera-btn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 600;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.camera-btn.start {
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #28a745;
+}
+
+.camera-btn.stop {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.camera-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.camera-view {
+    flex: 1;
+    position: relative;
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#camera-stream {
     width: 100%;
-    max-width: 600px;
+    height: 100%;
+    object-fit: cover;
+}
+
+.camera-placeholder,
+.camera-error {
+    text-align: center;
+    color: #6c757d;
+    padding: 40px;
+}
+
+.camera-placeholder .camera-icon,
+.camera-error .error-icon {
+    font-size: 3em;
+    margin-bottom: 15px;
+}
+
+.camera-error {
+    color: #dc3545;
+}
+
+.camera-status {
+    padding: 15px 20px;
+    background-color: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#camera-status-text {
+    font-size: 0.9em;
+    font-weight: 600;
+    color: #6c757d;
+}
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.status-indicator.online {
+    background-color: #28a745;
+}
+
+.status-indicator.offline {
+    background-color: #dc3545;
+    animation: none;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+    }
+}
+
+/* 챗봇 섹션 */
+.chat-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-container {
     height: 80vh;
     background-color: white;
     border-radius: 15px;
@@ -191,7 +332,7 @@ body {
     max-width: 80%;
     line-height: 1.4;
     word-wrap: break-word;
-    white-space: pre-wrap; /* 줄바꿈 처리를 위해 추가 */
+    white-space: pre-wrap;
     animation: fadeIn 0.3s ease-in;
 }
 
@@ -304,13 +445,63 @@ body {
 }
 
 /* 반응형 디자인 */
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
     .container {
-        padding: 10px;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .camera-section {
+        flex: 0 0 300px;
+    }
+    
+    .camera-container {
+        height: 300px;
+    }
+    
+    .chat-section {
+        flex: 1;
     }
     
     .chat-container {
-        height: 90vh;
+        height: calc(80vh - 315px);
+        min-height: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    .camera-section {
+        flex: 0 0 250px;
+    }
+    
+    .camera-container {
+        height: 250px;
+        border-radius: 10px;
+    }
+    
+    .camera-header {
+        padding: 15px;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .camera-header h2 {
+        font-size: 1.1em;
+    }
+    
+    .camera-btn {
+        padding: 6px 12px;
+        font-size: 0.8em;
+    }
+    
+    .chat-container {
+        height: calc(90vh - 260px);
+        min-height: 350px;
         border-radius: 10px;
     }
     

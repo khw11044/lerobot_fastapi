@@ -11,12 +11,142 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentUserName = document.getElementById('current-user-name');
     const logoutButton = document.getElementById('logout-btn');
     
+    // 카메라 관련 요소들
+    const startCameraBtn = document.getElementById('start-camera-btn');
+    const stopCameraBtn = document.getElementById('stop-camera-btn');
+    const cameraStream = document.getElementById('camera-stream');
+    const cameraPlaceholder = document.getElementById('camera-placeholder');
+    const cameraError = document.getElementById('camera-error');
+    const cameraStatusText = document.getElementById('camera-status-text');
+    const cameraStatusIndicator = document.getElementById('camera-status-indicator');
+    
     let isLoading = false;
     let currentUserId = null;
     let sessionId = null;
+    let cameraActive = false;
 
     // 초기 상태: 채팅 비활성화
     setChatDisabled(true);
+
+    // 카메라 이벤트 리스너
+    startCameraBtn.addEventListener('click', startCamera);
+    stopCameraBtn.addEventListener('click', stopCamera);
+
+    // 카메라 시작 함수
+    async function startCamera() {
+        try {
+            startCameraBtn.disabled = true;
+            updateCameraStatus('연결 중...', 'connecting');
+            
+            const response = await fetch('/camera/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (response.ok) {
+                // 카메라 스트림 시작
+                cameraStream.src = '/camera/stream?' + new Date().getTime();
+                cameraStream.style.display = 'block';
+                cameraPlaceholder.style.display = 'none';
+                cameraError.style.display = 'none';
+                
+                cameraActive = true;
+                updateCameraStatus('온라인', 'online');
+                
+                // 카메라 스트림 로드 이벤트
+                cameraStream.onload = function() {
+                    updateCameraStatus('스트리밍 중', 'online');
+                };
+                
+                cameraStream.onerror = function() {
+                    showCameraError('스트림 오류가 발생했습니다.');
+                };
+                
+            } else {
+                const data = await response.json();
+                showCameraError(data.detail || '카메라를 시작할 수 없습니다.');
+            }
+        } catch (error) {
+            console.error('카메라 시작 오류:', error);
+            showCameraError('카메라 연결에 실패했습니다.');
+        } finally {
+            startCameraBtn.disabled = false;
+        }
+    }
+
+    // 카메라 중지 함수
+    async function stopCamera() {
+        try {
+            stopCameraBtn.disabled = true;
+            
+            const response = await fetch('/camera/stop', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (response.ok) {
+                cameraStream.style.display = 'none';
+                cameraPlaceholder.style.display = 'flex';
+                cameraError.style.display = 'none';
+                cameraStream.src = '';
+                
+                cameraActive = false;
+                updateCameraStatus('오프라인', 'offline');
+            } else {
+                const data = await response.json();
+                console.error('카메라 중지 오류:', data.detail);
+            }
+        } catch (error) {
+            console.error('카메라 중지 오류:', error);
+        } finally {
+            stopCameraBtn.disabled = false;
+        }
+    }
+
+    // 카메라 상태 업데이트 함수
+    function updateCameraStatus(text, status) {
+        cameraStatusText.textContent = text;
+        cameraStatusIndicator.className = `status-indicator ${status}`;
+    }
+
+    // 카메라 오류 표시 함수
+    function showCameraError(message) {
+        cameraStream.style.display = 'none';
+        cameraPlaceholder.style.display = 'none';
+        cameraError.style.display = 'flex';
+        cameraError.querySelector('p').textContent = message;
+        
+        cameraActive = false;
+        updateCameraStatus('오류', 'offline');
+    }
+
+    // 카메라 상태 확인 함수
+    async function checkCameraStatus() {
+        try {
+            const response = await fetch('/camera/status');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.is_streaming && !cameraActive) {
+                    // 서버에서는 스트리밍 중인데 클라이언트에서 비활성화된 경우
+                    cameraStream.src = '/camera/stream?' + new Date().getTime();
+                    cameraStream.style.display = 'block';
+                    cameraPlaceholder.style.display = 'none';
+                    cameraError.style.display = 'none';
+                    cameraActive = true;
+                    updateCameraStatus('스트리밍 중', 'online');
+                }
+            }
+        } catch (error) {
+            console.error('카메라 상태 확인 오류:', error);
+        }
+    }
+
+    // 페이지 로드 시 카메라 상태 확인
+    checkCameraStatus();
 
     // 사용자 로그인
     async function loginUser() {
@@ -243,7 +373,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (response.ok) {
                 chatBox.innerHTML = `
                     <div class="message bot">
-                        안녕하세요 ${currentUserId}님! 저는 로봇 사탕가게 직원입니다. 빨간색 사탕(딸기), 파란 사탕(소다), 노란 사탕(레몬), 오렌지 주스를 판매합니다. 무엇을 주문하시겠어요? 🍭🤖
+                        안녕하세요 ${currentUserId}님! 저는 로봇 사탕가게 직원입니다. 빨간색 사탕(딸기), 파란 사탕(소다), 노간 사탕(레몬), 오렌지 주스를 판매합니다. 무엇을 주문하시겠어요? 🍭🤖
                     </div>
                 `;
             }
@@ -275,4 +405,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 초기 포커스를 사용자 ID 입력창에
     userIdInput.focus();
+
+    // 페이지를 떠날 때 카메라 리소스 정리
+    window.addEventListener('beforeunload', function() {
+        if (cameraActive) {
+            stopCamera();
+        }
+    });
 });

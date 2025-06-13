@@ -8,36 +8,67 @@
 </head>
 <body>
     <div class="container">
-        <div class="chat-container">
-            <!-- 챗봇 헤더 -->
-            <div class="chat-header">
-                <h1>AI 챗봇</h1>
-                <button id="clear-btn" class="clear-button">대화 초기화</button>
-            </div>
-
-            <!-- 사용자 ID 입력 영역 -->
-            <div class="user-id-section">
-                <div class="user-id-input">
-                    <input type="text" id="user-id" placeholder="사용자 ID를 입력하세요" maxlength="20">
-                    <button id="login-btn">로그인</button>
+        <!-- 카메라 섹션 -->
+        <div class="camera-section">
+            <div class="camera-container">
+                <div class="camera-header">
+                    <h2>실시간 카메라</h2>
+                    <div class="camera-controls">
+                        <button id="start-camera-btn" class="camera-btn start">시작</button>
+                        <button id="stop-camera-btn" class="camera-btn stop">중지</button>
+                    </div>
                 </div>
-                <div class="current-user" id="current-user" style="display: none;">
-                    현재 사용자: <span id="current-user-name"></span>
-                    <button id="logout-btn" class="logout-button">로그아웃</button>
+                <div class="camera-view">
+                    <img id="camera-stream" src="" alt="카메라 스트림" style="display: none;">
+                    <div id="camera-placeholder" class="camera-placeholder">
+                        <div class="camera-icon">📹</div>
+                        <p>카메라를 시작하려면 '시작' 버튼을 클릭하세요</p>
+                    </div>
+                    <div id="camera-error" class="camera-error" style="display: none;">
+                        <div class="error-icon">⚠️</div>
+                        <p>카메라에 접근할 수 없습니다</p>
+                    </div>
+                </div>
+                <div class="camera-status">
+                    <span id="camera-status-text">카메라 대기 중</span>
+                    <div id="camera-status-indicator" class="status-indicator offline"></div>
                 </div>
             </div>
+        </div>
 
-            <!-- 대화 창 -->
-            <div class="chat-box" id="chat-box">
-                <div class="message bot">
-                    안녕하세요! 저는 로봇 사탕가게 직원입니다. 먼저 사용자 ID를 입력해주세요! 🍭🤖
+        <!-- 챗봇 섹션 -->
+        <div class="chat-section">
+            <div class="chat-container">
+                <!-- 챗봇 헤더 -->
+                <div class="chat-header">
+                    <h1>AI 챗봇</h1>
+                    <button id="clear-btn" class="clear-button">대화 초기화</button>
                 </div>
-            </div>
 
-            <!-- 입력 영역 -->
-            <div class="chat-input">
-                <input type="text" id="user-input" placeholder="메시지를 입력하세요..." maxlength="500">
-                <button id="send-btn">전송</button>
+                <!-- 사용자 ID 입력 영역 -->
+                <div class="user-id-section">
+                    <div class="user-id-input">
+                        <input type="text" id="user-id" placeholder="사용자 ID를 입력하세요" maxlength="20">
+                        <button id="login-btn">로그인</button>
+                    </div>
+                    <div class="current-user" id="current-user" style="display: none;">
+                        현재 사용자: <span id="current-user-name"></span>
+                        <button id="logout-btn" class="logout-button">로그아웃</button>
+                    </div>
+                </div>
+
+                <!-- 대화 창 -->
+                <div class="chat-box" id="chat-box">
+                    <div class="message bot">
+                        안녕하세요! 저는 로봇 사탕가게 직원입니다. 먼저 사용자 ID를 입력해주세요! 🍭🤖
+                    </div>
+                </div>
+
+                <!-- 입력 영역 -->
+                <div class="chat-input">
+                    <input type="text" id="user-input" placeholder="메시지를 입력하세요..." maxlength="500">
+                    <button id="send-btn">전송</button>
+                </div>
             </div>
         </div>
     </div>
