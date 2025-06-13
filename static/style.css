@@ -25,7 +25,7 @@ body {
 
 /* 카메라 섹션 */
 .camera-section {
-    flex: 0 0 400px;
+    flex: 1;
     display: flex;
     flex-direction: column;
 }
@@ -98,6 +98,7 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transform: scaleX(-1); /* 좌우 반전 (미러 효과) */
 }
 
 .camera-placeholder,
@@ -162,7 +163,7 @@ body {
 
 /* 챗봇 섹션 */
 .chat-section {
-    flex: 1;
+    flex: 0 0 450px;
     display: flex;
     flex-direction: column;
 }
@@ -452,20 +453,22 @@ body {
     }
     
     .camera-section {
-        flex: 0 0 300px;
+        flex: 1;
+        order: 1;
     }
     
     .camera-container {
-        height: 300px;
+        height: 60vh;
     }
     
     .chat-section {
-        flex: 1;
+        flex: 0 0 350px;
+        order: 2;
     }
     
     .chat-container {
-        height: calc(80vh - 315px);
-        min-height: 400px;
+        height: 350px;
+        min-height: 350px;
     }
 }
 
@@ -476,11 +479,12 @@ body {
     }
     
     .camera-section {
-        flex: 0 0 250px;
+        flex: 1;
+        order: 1;
     }
     
     .camera-container {
-        height: 250px;
+        height: 50vh;
         border-radius: 10px;
     }
     
@@ -499,9 +503,14 @@ body {
         font-size: 0.8em;
     }
     
+    .chat-section {
+        flex: 0 0 300px;
+        order: 2;
+    }
+    
     .chat-container {
-        height: calc(90vh - 260px);
-        min-height: 350px;
+        height: 300px;
+        min-height: 300px;
         border-radius: 10px;
     }
     
