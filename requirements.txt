@@ -7,3 +7,4 @@ langchain_core
 langchain_community
 python-dotenv
 pydantic
+mediapipe

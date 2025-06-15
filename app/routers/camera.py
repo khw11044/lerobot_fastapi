@@ -4,6 +4,7 @@ import cv2
 import threading
 import time
 from typing import Optional
+from ..services.face_detection_service import face_detection_service
 
 router = APIRouter()
 
@@ -30,7 +31,7 @@ class CameraManager:
                 self.camera.set(cv2.CAP_PROP_FPS, 30)
                 
                 self.is_streaming = True
-                print(f"카메라 {camera_index} 시작됨")
+                print(f"카메라 {camera_index} 시작됨 (얼굴 탐지 활성화)")
                 return True
                 
             except Exception as e:
@@ -50,6 +51,8 @@ class CameraManager:
     
     def generate_frames(self):
         """프레임을 생성합니다."""
+        frame_count = 0
+        
         while self.is_streaming:
             with self.lock:
                 if self.camera is None or not self.camera.isOpened():
@@ -59,6 +62,16 @@ class CameraManager:
                 if not success:
                     print("프레임을 읽을 수 없습니다.")
                     break
+                
+                # 미러 효과 (좌우 반전)
+                # frame = cv2.flip(frame, 1)
+                
+                # 얼굴 탐지 및 바운딩 박스 그리기 (항상 활성화)
+                try:
+                    frame = face_detection_service.process_frame(frame)
+                except Exception as e:
+                    print(f"얼굴 탐지 오류: {e}")
+                    # 얼굴 탐지에 실패해도 원본 프레임을 계속 전송
                 
                 # 프레임을 JPEG로 인코딩
                 ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
@@ -70,7 +83,9 @@ class CameraManager:
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
             
-            time.sleep(0.033)  # 약 30 FPS
+            # FPS 조절 (약 30 FPS)
+            time.sleep(0.033)
+            frame_count += 1
 
 # 전역 카메라 매니저 인스턴스
 camera_manager = CameraManager()
@@ -114,5 +129,28 @@ async def camera_status():
     """카메라 상태를 반환합니다."""
     return {
         "is_streaming": camera_manager.is_streaming,
-        "camera_active": camera_manager.camera is not None and camera_manager.camera.isOpened()
+        "camera_active": camera_manager.camera is not None and camera_manager.camera.isOpened(),
+        "face_detection_enabled": True  # 항상 활성화
     }
+
+@router.get("/face-count")
+async def get_face_count():
+    """현재 프레임에서 탐지된 얼굴 개수를 반환합니다."""
+    try:
+        if not camera_manager.is_streaming or camera_manager.camera is None:
+            return {"face_count": 0, "message": "카메라가 활성화되지 않음"}
+        
+        with camera_manager.lock:
+            success, frame = camera_manager.camera.read()
+            if not success:
+                return {"face_count": 0, "message": "프레임을 읽을 수 없음"}
+            
+            # frame = cv2.flip(frame, 1)
+            face_count = face_detection_service.get_face_count(frame)
+            
+            return {
+                "face_count": face_count,
+                "message": f"{face_count}개의 얼굴이 탐지됨"
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
