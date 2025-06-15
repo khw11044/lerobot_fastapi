@@ -8,3 +8,8 @@ langchain_community
 python-dotenv
 pydantic
 mediapipe
+chromadb
+facenet-pytorch
+torch
+torchvision
+pillow

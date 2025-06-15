@@ -64,7 +64,7 @@ class CameraManager:
                     break
                 
                 # 미러 효과 (좌우 반전)
-                # frame = cv2.flip(frame, 1)
+                frame = cv2.flip(frame, 1)
                 
                 # 얼굴 탐지 및 바운딩 박스 그리기 (항상 활성화)
                 try:
@@ -145,7 +145,7 @@ async def get_face_count():
             if not success:
                 return {"face_count": 0, "message": "프레임을 읽을 수 없음"}
             
-            # frame = cv2.flip(frame, 1)
+            frame = cv2.flip(frame, 1)
             face_count = face_detection_service.get_face_count(frame)
             
             return {

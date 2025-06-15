@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentUserId = null;
     let sessionId = null;
     let cameraActive = false;
+    let faceSessionCheckInterval = null; // 얼굴 세션 체크 인터벌
 
     // 초기 상태: 채팅 비활성화
     setChatDisabled(true);
@@ -198,6 +199,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 페이지 로드 시 로봇 연결 상태 확인 (실패해도 무시)
     checkRobotConnection();
+
+    // 얼굴 인식 세션 모니터링 시작
+    startFaceSessionMonitoring();
 
     // 사용자 로그인
     async function loginUser() {
@@ -470,10 +474,75 @@ document.addEventListener('DOMContentLoaded', function() {
         if (cameraActive) {
             stopCamera();
         }
+        
+        // 얼굴 세션 모니터링 정리
+        if (faceSessionCheckInterval) {
+            clearInterval(faceSessionCheckInterval);
+        }
     });
 
     // 주기적으로 로봇 상태 확인 (30초마다, 실패해도 무시)
     setInterval(() => {
         checkRobotConnection();
     }, 30000);
+
+    // 얼굴 인식 세션 모니터링 함수
+    function startFaceSessionMonitoring() {
+        // 2초마다 얼굴 세션 상태 확인
+        faceSessionCheckInterval = setInterval(async () => {
+            if (!cameraActive) return; // 카메라가 비활성화되어 있으면 체크하지 않음
+            
+            try {
+                const response = await fetch('/face/current-session');
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // 얼굴이 인식되고 현재 로그인 상태와 다른 경우
+                    if (data.current_user && data.current_user !== currentUserId) {
+                        await performAutoLogin(data.current_user);
+                    }
+                    
+                    // 얼굴이 사라져서 로그아웃이 필요한 경우
+                    if (!data.face_detected && currentUserId) {
+                        // 얼굴이 감지되지 않으면 잠시 후 로그아웃 처리는 서버에서 관리
+                        // 여기서는 별도 처리 없이 서버 상태를 따름
+                    }
+                    
+                    // 얼굴 세션이 리셋된 경우 (서버에서 타임아웃 발생)
+                    if (currentUserId && !data.current_user && !data.face_detected) {
+                        performAutoLogout();
+                    }
+                }
+            } catch (error) {
+                // 에러는 무시 (네트워크 문제 등)
+                console.log('얼굴 세션 체크 오류 (무시됨):', error);
+            }
+        }, 2000);
+    }
+
+    // 자동 로그아웃 처리 함수
+    function performAutoLogout() {
+        if (!currentUserId) return; // 이미 로그아웃 상태
+        
+        console.log('자동 로그아웃 수행');
+        
+        currentUserId = null;
+        sessionId = null;
+        
+        // UI 초기화
+        userIdInput.style.display = 'block';
+        loginButton.style.display = 'block';
+        userIdInput.value = '';
+        currentUserDiv.style.display = 'none';
+        
+        // 채팅 비활성화 및 초기화
+        setChatDisabled(true);
+        chatBox.innerHTML = `
+            <div class="message bot">
+                안녕하세요! 저는 로봇 사탕가게 직원입니다. 먼저 사용자 ID를 입력해주세요! 🍭🤖
+            </div>
+        `;
+        
+        userIdInput.focus();
+    }
 });
