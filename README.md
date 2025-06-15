@@ -35,3 +35,9 @@ conda activate fastapi
 ```
 pip install -r requirements.txt
 ```
+
+# 실행 
+
+```
+python run.py
+```

@@ -1,4 +1,5 @@
 import asyncio
+import re
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.runnables.history import RunnableWithMessageHistory
@@ -11,6 +12,9 @@ from dotenv import load_dotenv
 # 프롬프트와 데이터베이스 유틸리티 임포트
 from utils.prompts.prompt import chat_prompt
 from utils.databases.database import DatabaseManager
+
+# 통신 서비스 임포트
+from .communication_service import communication_service
 
 load_dotenv()
 
@@ -45,6 +49,24 @@ class LLMService:
             connection="sqlite:///chat_history.db",
         )
     
+    def _detect_order(self, response: str) -> bool:
+        """응답에서 주문 내역이 포함되어 있는지 확인합니다."""
+        # [주문 내역] 패턴 검색
+        pattern = r'\[주문\s*내역\]'
+        return bool(re.search(pattern, response, re.IGNORECASE))
+    
+    def _handle_order_detected(self, response: str, session_id: str):
+        """주문이 감지되었을 때 로봇 제어 PC로 메시지를 전송합니다."""
+        try:
+            print(f"[주문 감지] 세션: {session_id}")
+            print(f"[주문 내용] {response}")
+            
+            # 로봇 제어 PC로 메시지 전송 (비동기)
+            communication_service.send_message_async(response)
+            
+        except Exception as e:
+            print(f"[주문 처리 오류] {e}")
+    
     async def generate_response(self, user_message: str, session_id: str = "default") -> str:
         """사용자 메시지에 대한 AI 응답을 생성합니다."""
         try:
@@ -68,6 +90,10 @@ class LLMService:
                 {"input": user_message},
                 {"configurable": {"session_id": self.current_session_id}}
             )
+            
+            # 주문 감지 및 로봇 통신
+            if self._detect_order(response):
+                self._handle_order_detected(response, self.current_session_id)
             
             # 데이터베이스에 대화 내용 저장
             await asyncio.to_thread(

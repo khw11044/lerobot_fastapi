@@ -20,6 +20,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const cameraStatusText = document.getElementById('camera-status-text');
     const cameraStatusIndicator = document.getElementById('camera-status-indicator');
     
+    // 로봇 상태 관련 요소들
+    const robotStatusIndicator = document.getElementById('robot-status-indicator');
+    const robotStatusIndicatorLogged = document.getElementById('robot-status-indicator-logged');
+    
     let isLoading = false;
     let currentUserId = null;
     let sessionId = null;
@@ -145,8 +149,55 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // 로봇 상태 업데이트 함수
+    function updateRobotStatus(status) {
+        if (robotStatusIndicator) {
+            robotStatusIndicator.className = `robot-indicator ${status}`;
+        }
+        if (robotStatusIndicatorLogged) {
+            robotStatusIndicatorLogged.className = `robot-indicator ${status}`;
+        }
+    }
+
+    // 로봇 연결 상태 확인 함수 (백그라운드에서 실행)
+    async function checkRobotConnection() {
+        try {
+            updateRobotStatus('connecting');
+            
+            const response = await fetch('/robot/test-connection', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    test_message: `BACKGROUND_CHECK_${Date.now()}`
+                })
+            });
+
+            const data = await response.json();
+            
+            if (response.ok && data.status === 'success') {
+                updateRobotStatus('online');
+                // 5초 후 다시 offline으로 변경 (연결 확인이므로)
+                setTimeout(() => {
+                    updateRobotStatus('offline');
+                }, 5000);
+            } else {
+                updateRobotStatus('offline');
+            }
+            
+        } catch (error) {
+            // 로봇 연결 실패해도 웹페이지는 정상 작동
+            console.log('로봇 연결 확인 실패 (정상 작동):', error);
+            updateRobotStatus('offline');
+        }
+    }
+
     // 페이지 로드 시 카메라 상태 확인
     checkCameraStatus();
+    
+    // 페이지 로드 시 로봇 연결 상태 확인 (실패해도 무시)
+    checkRobotConnection();
 
     // 사용자 로그인
     async function loginUser() {
@@ -177,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 이전 대화 기록 불러오기
         await loadChatHistory();
         
-        addMessage('bot', `안녕하세요 ${userId}님! 저는 로봇 사탕가게 직원입니다. 빨간색 사탕(딸기), 파란 사탕(소다), 노란 사탕(레몬), 오렌지 주스를 판매합니다. 무엇을 주문하시겠어요? 🍭🤖`);
+        addMessage('bot', `안녕하세요 ${userId}님! 저는 로봇 사탕가게 직원입니다. 빨간색 사탕(딸기), 파란 사탕(소다), 노간색 사탕(레몬), 오렌지 주스를 판매합니다. 무엇을 주문하시겠어요? 🍭🤖`);
         
         userInput.focus();
     }
@@ -291,6 +342,14 @@ document.addEventListener('DOMContentLoaded', function() {
             // AI 응답 추가
             addMessage('bot', data.response);
             
+            // 주문이 감지되었을 때 로봇 상태 잠시 업데이트
+            if (data.response && data.response.includes('[주문 내역]')) {
+                updateRobotStatus('connecting');
+                setTimeout(() => {
+                    updateRobotStatus('offline');
+                }, 3000);
+            }
+            
         } catch (error) {
             console.error('Error:', error);
             
@@ -373,7 +432,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (response.ok) {
                 chatBox.innerHTML = `
                     <div class="message bot">
-                        안녕하세요 ${currentUserId}님! 저는 로봇 사탕가게 직원입니다. 빨간색 사탕(딸기), 파란 사탕(소다), 노간 사탕(레몬), 오렌지 주스를 판매합니다. 무엇을 주문하시겠어요? 🍭🤖
+                        안녕하세요 ${currentUserId}님! 저는 로봇 사탕가게 직원입니다. 빨간색 사탕(딸기), 파란 사탕(소다), 노간색 사탕(레몬), 오렌지 주스를 판매합니다. 무엇을 주문하시겠어요? 🍭🤖
                     </div>
                 `;
             }
@@ -412,4 +471,9 @@ document.addEventListener('DOMContentLoaded', function() {
             stopCamera();
         }
     });
+
+    // 주기적으로 로봇 상태 확인 (30초마다, 실패해도 무시)
+    setInterval(() => {
+        checkRobotConnection();
+    }, 30000);
 });

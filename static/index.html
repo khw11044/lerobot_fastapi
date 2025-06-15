@@ -50,9 +50,17 @@
                     <div class="user-id-input">
                         <input type="text" id="user-id" placeholder="사용자 ID를 입력하세요" maxlength="20">
                         <button id="login-btn">로그인</button>
+                        <!-- 로봇 상태 표시 (작게) -->
+                        <div class="robot-status-mini">
+                            <div id="robot-status-indicator" class="robot-indicator offline" title="로봇 연결 상태"></div>
+                        </div>
                     </div>
                     <div class="current-user" id="current-user" style="display: none;">
                         현재 사용자: <span id="current-user-name"></span>
+                        <!-- 로봇 상태 표시 (작게) -->
+                        <div class="robot-status-mini">
+                            <div id="robot-status-indicator-logged" class="robot-indicator offline" title="로봇 연결 상태"></div>
+                        </div>
                         <button id="logout-btn" class="logout-button">로그아웃</button>
                     </div>
                 </div>

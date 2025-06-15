@@ -2,10 +2,10 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import chatbot, camera
+from .routers import chatbot, camera, robot
 import os
 
-app = FastAPI()
+app = FastAPI(title="LLM 챗봇 with 로봇 제어", version="1.0.0")
 
 # CORS 설정
 app.add_middleware(
@@ -22,6 +22,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # 라우터 등록
 app.include_router(chatbot.router, prefix="/chatbot", tags=["Chatbot"])
 app.include_router(camera.router, prefix="/camera", tags=["Camera"])
+app.include_router(robot.router, prefix="/robot", tags=["Robot"])  # 새로 추가
 
 # 메인 페이지 서빙
 @app.get("/", response_class=HTMLResponse)
@@ -29,9 +30,24 @@ async def get_index():
     with open("static/index.html", "r", encoding="utf-8") as f:
         return HTMLResponse(content=f.read(), status_code=200)
 
-# 앱 종료 시 카메라 정리
+# 헬스 체크 엔드포인트
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "message": "LLM 챗봇 서버가 정상 작동 중입니다.",
+        "features": [
+            "AI 챗봇",
+            "실시간 카메라",
+            "로봇 제어 통신"
+        ]
+    }
+
+# 앱 종료 시 리소스 정리
 @app.on_event("shutdown")
 async def shutdown_event():
     # 카메라 리소스 정리
     from .routers.camera import camera_manager
     camera_manager.stop_camera()
+    
+    print("애플리케이션이 정상적으로 종료되었습니다.")
