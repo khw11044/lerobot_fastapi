@@ -2,23 +2,52 @@
 
 ```
 project/
-├── README.md                  # 프로젝트 설명서
-├── run.py                     # 서버 실행 파일
-├── requirements.txt           # 필요한 패키지 목록
-├── check_camera.py           # 카메라 확인 스크립트
-├── app/
-│   ├── __init__.py           # 앱 초기화 파일
-│   ├── main.py               # FastAPI 메인 서버
-│   ├── routers/
-│   │   ├── __init__.py       # 라우터 초기화 파일
-│   │   └── chatbot.py        # 챗봇 라우터
+├── app
+│   ├── config.py
+│   ├── __init__.py
+│   ├── main.py
+│   ├── __pycache__
+│   │   ├── config.cpython-310.pyc
+│   │   ├── __init__.cpython-310.pyc
+│   │   └── main.cpython-310.pyc
+│   ├── routers
+│   │   ├── camera.py
+│   │   ├── chatbot.py
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── camera.cpython-310.pyc
+│   │   │   ├── chatbot.cpython-310.pyc
+│   │   │   ├── __init__.cpython-310.pyc
+│   │   │   ├── robot.cpython-310.pyc
+│   │   │   └── stream.cpython-310.pyc
+│   │   └── robot.py
 │   └── services
-│       ├── __init__.py       # 서비스 초기화 파일
-│       └── llm_service.py    # LLM 서비스 로직
-└── static/
-    ├── index.html            # 메인 웹 페이지
-    ├── style.css             # 스타일시트
-    └── script.js             # JavaScript 로직
+│       ├── camera_service.py
+│       ├── communication_service.py
+│       ├── __init__.py
+│       ├── llm_service.py
+│       └── __pycache__
+│           ├── communication_service.cpython-310.pyc
+│           ├── __init__.cpython-310.pyc
+│           └── llm_service.cpython-310.pyc
+├── chat_history.db
+├── README.md
+├── requirements.txt
+├── run.py
+├── static
+│   ├── index.html
+│   ├── script.js
+│   └── style.css
+└── utils
+    ├── databases
+    │   ├── database.py
+    │   └── __init__.py
+    ├── __init__.py
+    ├── prompts
+    │   ├── __init__.py
+    │   └── prompt.py
+
+
 ```
 
 

@@ -1,3 +1,6 @@
+__pycache__/
+*.pyc
+
 .env
 faces
 chat_history.db
